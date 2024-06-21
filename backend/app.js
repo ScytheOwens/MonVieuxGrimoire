@@ -1,8 +1,10 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const app = express();
 const bookRoutes = require('./routes/book');
+const userRoutes = require('./routes/user');
 
 mongoose.connect('mongodb+srv://root:toortoor@monvieuxgrimoire.ndwjlwp.mongodb.net/?retryWrites=true&w=majority&appName=MonVieuxGrimoire',
     { 
@@ -13,7 +15,7 @@ mongoose.connect('mongodb+srv://root:toortoor@monvieuxgrimoire.ndwjlwp.mongodb.n
     .catch(() => console.log('Connexion à MongoDB échouée !')
 );
 
-app.use(express.json());
+app.use(bodyParser.json());
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -22,6 +24,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use('/api/book', bookRoutes);
+app.use('/api/books', bookRoutes);
+app.use('/api/auth', userRoutes);
 
 module.exports = app;
