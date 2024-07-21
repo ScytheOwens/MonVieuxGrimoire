@@ -40,7 +40,14 @@ exports.deleteBook = (req, res, next) => {
 exports.findBestRatedBooks = (req, res, next) => {
     // Add logic to filter results hint: arr.sort(a, b)
     Book.find()
-        .then(books => res.status(200).json(books))
+        .then(books => {
+            books.sort(function(a, b){
+                return b.averageRating - a.averageRating;
+            });
+
+            books = books.slice(0, 3);
+            res.status(200).json(books)
+        })
         .catch(error => res.status(400).json({ error }))
     ;
 };
@@ -107,7 +114,7 @@ exports.updateBook = (req, res, next) => {
     Book.findOne({_id: req.params.id})
         .then((book) => {
             if (book.userId != req.auth.userId) {
-                res.status(401).json({ message : 'Not authorized'});
+                res.status(403).json({ message : 'Unauthorized request'});
             } else {
                 Book.updateOne({ _id: req.params.id }, { ...bookObject, _id: req.params.id })
                     .then(() => res.status(200).json({ message: 'Objet modifié !'}))
