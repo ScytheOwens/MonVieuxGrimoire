@@ -37,18 +37,26 @@ exports.deleteBook = (req, res, next) => {
        });
 };
 
+exports.findBestRatedBooks = (req, res, next) => {
+    // Add logic to filter results hint: arr.sort(a, b)
+    Book.find()
+        .then(books => res.status(200).json(books))
+        .catch(error => res.status(400).json({ error }))
+    ;
+};
+
 exports.findBookById = (req, res, next) => {
     Book.findOne({ _id: req.params.id })
         .then(book => res.status(200).json(book))
-        .catch(error => res.status(400).json({ error })
-    );
+        .catch(error => res.status(400).json({ error }))
+    ;
 };
 
 exports.findBooks = (req, res, next) => {
     Book.find()
         .then(books => res.status(200).json(books))
-        .catch(error => res.status(400).json({ error })
-    );
+        .catch(error => res.status(400).json({ error }))
+    ;
 };
 
 exports.rateBook = (req, res, next) => {
@@ -57,25 +65,36 @@ exports.rateBook = (req, res, next) => {
     delete rateObject._userId;
     Book.findOne({_id: req.params.id})
         .then((book) => {
+            let hasRated = false;
             book.ratings.forEach(rate => {
-                if (rate.userId == req.auth.userId) {
-                    res.status(401).json({ message : 'Not authorized'});
+                if (rate.userId === req.auth.userId) {
+                    hasRated = true;
                 }
             });
 
-            const rating = {
-                userId: req.auth.userId,
-                grade: rateObject.rating
+            if (hasRated == true) {
+                res.status(401).json({ message : 'Not authorized'});
+            } else {
+                const rating = {
+                    userId: req.auth.userId,
+                    grade: rateObject.rating
+                };
+                const countRatings = book.ratings.push(rating);
+                let newAverage = 0;
+
+                book.ratings.forEach(rate => { newAverage = newAverage+rate.grade });
+                newAverage = newAverage/countRatings;
+
+                Book.updateOne({_id: req.params.id}, { ratings: book.ratings, averageRating: newAverage })
+                    .then(() => res.status(200).json(book))
+                    .catch(error => res.status(400).json({ error })
+                );
             }
-
-            const newRating = book.ratings.push(rating);
-
-            Book.updateOne({_id: req.params.id}, { ratings: book.ratings })
-                .then(() => res.status(200).json({ message: 'Objet modifié !'}, { id:book.id }))
-                .catch(error => res.status(401).json({ error })
-            );
-        }
-    )
+        })
+        .catch((error) => {
+            res.status(400).json({ error });
+        })
+    ;
 };
 
 exports.updateBook = (req, res, next) => {
