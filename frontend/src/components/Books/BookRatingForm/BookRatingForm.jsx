@@ -42,6 +42,7 @@ function BookRatingForm({
   return (
     <div className={styles.BookRatingForm}>
       <form onSubmit={handleSubmit(onSubmit)}>
+        <input type="hidden" id="id" {...register('id')} />
         <p>{rating > 0 ? 'Votre Note' : 'Notez cet ouvrage'}</p>
         <div className={styles.Stars}>
           {!userRated ? generateStarsInputs(rating, register) : displayStars(rating)}
